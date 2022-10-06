@@ -21,15 +21,29 @@ app.use(express.urlencoded({ extended: true }));
 
 app.get('/', (req, res) => {
 
+  function compare(startTime) {
+    return function (a, b) {
+      if (a[startTime] > b[startTime])
+        return 1;
+      else if (a[startTime] < b[startTime])
+        return -1;
+
+      return 0;
+    }
+  }
+  sortedBookingData = bookingData.sort(compare("startTime"))
+
+  
   var bookedSlots = []
   var status
-  for (let i = 0; i < bookingData.length; i++) {
+  for (let i = 0; i < sortedBookingData.length; i++) {
 
-    st = bookingData[i].startTime
-    et = bookingData[i].endTime + 1
+    st = sortedBookingData[i].startTime
+    et = sortedBookingData[i].endTime + 1
 
-    pst = new Date((st) * 1000).toLocaleTimeString('en-US', { timeZone: 'America/Creston' })
-    pet = new Date((et) * 1000).toLocaleTimeString('en-US', { timeZone: 'America/Creston' })
+    var options = {timeZone: 'America/Creston', hour: "numeric", minute: "numeric"};
+    pst = new Date((st) * 1000).toLocaleTimeString('en-US', options)
+    pet = new Date((et) * 1000).toLocaleTimeString('en-US', options)
 
     if (bookedSlots.includes(st) || et - st > 1800) {
       status = "rejected"
@@ -38,10 +52,10 @@ app.get('/', (req, res) => {
       status = "accepted"
     }
 
-    // console.log(bookingData[i].name + " " + pst + "  -  " + pet + "," + status)
-    res.write(bookingData[i].name + ", " + bookingData[i].phone + ", " + pst + "  -  " + pet + ", " + status + "\n")
+    // console.log(sortedBookingData[i].name + " " + pst + "  -  " + pet + "," + status)
+    res.write(sortedBookingData[i].name + ", " + sortedBookingData[i].phone + ", " + pst + "  -  " + pet + ", " + status + "\n")
   }
-
+  // console.log(sortedBookingData)
   res.send()
 })
 
